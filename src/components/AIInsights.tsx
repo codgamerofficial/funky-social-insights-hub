@@ -2,8 +2,18 @@ import { Brain, TrendingUp, Users, Target, Lightbulb, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 const AIInsights = () => {
+  const { toast } = useToast();
+
+  const handleGenerateInsights = () => {
+    toast({
+      title: "Generating AI Insights",
+      description: "Analyzing your data to provide personalized recommendations...",
+    });
+  };
+
   const insights = [
     {
       icon: TrendingUp,
@@ -68,7 +78,10 @@ const AIInsights = () => {
       </div>
 
       <div className="flex justify-center">
-        <Button className="btn-3d gradient-funky text-white hover:opacity-90">
+        <Button 
+          className="btn-3d gradient-funky text-white hover:opacity-90"
+          onClick={handleGenerateInsights}
+        >
           <Lightbulb className="w-4 h-4 mr-2" />
           Get More AI Insights
         </Button>

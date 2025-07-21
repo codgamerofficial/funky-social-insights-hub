@@ -17,8 +17,32 @@ import AIInsights from "@/components/AIInsights";
 import ContactInfo from "@/components/ContactInfo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const { toast } = useToast();
+
+  const handleInstagramAnalyze = () => {
+    toast({
+      title: "Starting Instagram Analysis",
+      description: "Connecting to Instagram API to fetch your data...",
+    });
+  };
+
+  const handleFacebookAnalyze = () => {
+    toast({
+      title: "Starting Facebook Analysis", 
+      description: "Connecting to Facebook API to fetch your page data...",
+    });
+  };
+
+  const handleGetStarted = () => {
+    toast({
+      title: "Welcome to IG&FB Analyzer!",
+      description: "Let's get you started with analyzing your social media performance.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -36,11 +60,20 @@ const Index = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button variant="instagram" size="lg" className="animate-pulse-glow">
+            <Button 
+              variant="instagram" 
+              size="lg" 
+              className="animate-pulse-glow"
+              onClick={handleInstagramAnalyze}
+            >
               <Instagram className="w-5 h-5 mr-2" />
               Start Analyzing Instagram
             </Button>
-            <Button variant="facebook" size="lg">
+            <Button 
+              variant="facebook" 
+              size="lg"
+              onClick={handleFacebookAnalyze}
+            >
               <Facebook className="w-5 h-5 mr-2" />
               Analyze Facebook Page
             </Button>
@@ -151,7 +184,12 @@ const Index = () => {
               Connect your social media accounts and start getting AI-powered insights 
               to grow your online presence.
             </p>
-            <Button variant="funky" size="lg" className="animate-pulse-glow">
+            <Button 
+              variant="funky" 
+              size="lg" 
+              className="animate-pulse-glow"
+              onClick={handleGetStarted}
+            >
               Get Started Now
             </Button>
           </div>

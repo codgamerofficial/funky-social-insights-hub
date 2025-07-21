@@ -2,21 +2,48 @@ import { Instagram, Facebook, Link, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const SocialMediaConnector = () => {
+  const { toast } = useToast();
+  const [connectedPlatforms, setConnectedPlatforms] = useState({
+    Instagram: false,
+    Facebook: true
+  });
+
+  const handleConnect = (platformName: string) => {
+    toast({
+      title: `Connecting to ${platformName}`,
+      description: "Redirecting to authentication page...",
+    });
+    
+    // Simulate connection process
+    setTimeout(() => {
+      setConnectedPlatforms(prev => ({
+        ...prev,
+        [platformName]: true
+      }));
+      toast({
+        title: `${platformName} Connected!`,
+        description: "Successfully connected your account.",
+      });
+    }, 2000);
+  };
+
   const platforms = [
     {
       name: "Instagram",
       icon: Instagram,
       gradient: "gradient-instagram",
-      connected: false,
+      connected: connectedPlatforms.Instagram,
       description: "Connect your Instagram Business account to analyze posts, stories, and engagement metrics."
     },
     {
       name: "Facebook",
       icon: Facebook,
       gradient: "gradient-facebook", 
-      connected: true,
+      connected: connectedPlatforms.Facebook,
       description: "Analyze your Facebook page performance, audience insights, and post engagement."
     }
   ];
@@ -62,6 +89,7 @@ const SocialMediaConnector = () => {
                 <Button 
                   className={`w-full btn-3d ${platform.gradient} text-white hover:opacity-90 transition-all`}
                   disabled={platform.connected}
+                  onClick={() => handleConnect(platform.name)}
                 >
                   <Link className="w-4 h-4 mr-2" />
                   {platform.connected ? "Connected" : `Connect ${platform.name}`}
