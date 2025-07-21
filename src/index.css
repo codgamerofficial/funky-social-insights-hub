@@ -2,41 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Funky IG&FB Analyzer Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Funky Social Media Inspired Colors */
+    --background: 240 25% 6%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 240 20% 10%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 240 20% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Instagram Gradient Primary */
+    --primary: 315 100% 65%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 45 100% 70%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Facebook Blue Secondary */
+    --secondary: 214 100% 60%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Purple Accent */
+    --accent: 270 95% 75%;
+    --accent-foreground: 240 25% 6%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --muted: 240 15% 15%;
+    --muted-foreground: 240 10% 60%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 240 15% 20%;
+    --input: 240 15% 15%;
+    --ring: 315 100% 65%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
+
+    /* Custom Gradients */
+    --gradient-instagram: linear-gradient(135deg, hsl(315 100% 65%), hsl(45 100% 70%));
+    --gradient-facebook: linear-gradient(135deg, hsl(214 100% 60%), hsl(200 100% 70%));
+    --gradient-funky: linear-gradient(135deg, hsl(270 95% 75%), hsl(315 100% 65%));
+    --gradient-bg: linear-gradient(135deg, hsl(240 25% 6%), hsl(240 20% 10%));
+    
+    /* Glassmorphism */
+    --glass-bg: hsla(240, 20%, 15%, 0.7);
+    --glass-border: hsla(0, 0%, 100%, 0.1);
+    
+    /* Shadows & Glows */
+    --shadow-funky: 0 20px 40px hsla(315, 100%, 65%, 0.3);
+    --shadow-card: 0 10px 30px hsla(240, 25%, 3%, 0.5);
+    --glow-instagram: 0 0 30px hsla(315, 100%, 65%, 0.5);
+    --glow-facebook: 0 0 30px hsla(214, 100%, 60%, 0.5);
+    
+    /* Animations */
+    --transition-funky: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --sidebar-background: 0 0% 98%;
 
@@ -101,5 +124,75 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background: var(--gradient-bg);
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Funky Component Styles */
+@layer components {
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  .gradient-instagram {
+    background: var(--gradient-instagram);
+  }
+  
+  .gradient-facebook {
+    background: var(--gradient-facebook);
+  }
+  
+  .gradient-funky {
+    background: var(--gradient-funky);
+  }
+  
+  .btn-3d {
+    transform: translateY(0px);
+    transition: var(--transition-bounce);
+    box-shadow: var(--shadow-card);
+  }
+  
+  .btn-3d:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-funky);
+  }
+  
+  .btn-3d:active {
+    transform: translateY(-1px) scale(0.98);
+  }
+  
+  .glow-instagram {
+    box-shadow: var(--glow-instagram);
+  }
+  
+  .glow-facebook {
+    box-shadow: var(--glow-facebook);
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .text-gradient-instagram {
+    background: var(--gradient-instagram);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .text-gradient-facebook {
+    background: var(--gradient-facebook);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }
