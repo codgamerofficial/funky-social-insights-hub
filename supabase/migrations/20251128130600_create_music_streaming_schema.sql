@@ -2,12 +2,12 @@
 -- Created: 2025-11-28
 -- Purpose: Complete music streaming platform database structure
 
--- Enable Row Level Security
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create music_tracks table
 CREATE TABLE music_tracks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     youtube_id VARCHAR(255) UNIQUE NOT NULL,
     title TEXT NOT NULL,
     artist TEXT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE music_tracks (
 
 -- Create playlists table
 CREATE TABLE playlists (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
@@ -41,7 +41,7 @@ CREATE TABLE playlists (
 
 -- Create playlist_tracks junction table
 CREATE TABLE playlist_tracks (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     playlist_id UUID REFERENCES playlists(id) ON DELETE CASCADE,
     track_id UUID REFERENCES music_tracks(id) ON DELETE CASCADE,
     position INTEGER NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE playlist_tracks (
 
 -- Create user_favorites table
 CREATE TABLE user_favorites (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     track_id UUID REFERENCES music_tracks(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -60,7 +60,7 @@ CREATE TABLE user_favorites (
 
 -- Create user_follows table
 CREATE TABLE user_follows (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     follower_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     following_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -70,7 +70,7 @@ CREATE TABLE user_follows (
 
 -- Create listening_history table
 CREATE TABLE listening_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     track_id UUID REFERENCES music_tracks(id) ON DELETE CASCADE,
     playlist_id UUID REFERENCES playlists(id) ON DELETE SET NULL,
@@ -82,7 +82,7 @@ CREATE TABLE listening_history (
 
 -- Create user_profiles table
 CREATE TABLE user_profiles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     display_name TEXT,
     avatar_url TEXT,
@@ -99,7 +99,7 @@ CREATE TABLE user_profiles (
 
 -- Create music_analytics table
 CREATE TABLE music_analytics (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     track_id UUID REFERENCES music_tracks(id) ON DELETE CASCADE,
     total_plays INTEGER DEFAULT 0,
     total_likes INTEGER DEFAULT 0,
@@ -114,7 +114,7 @@ CREATE TABLE music_analytics (
 
 -- Create music_recommendations table
 CREATE TABLE music_recommendations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     track_id UUID REFERENCES music_tracks(id) ON DELETE CASCADE,
     recommendation_type TEXT NOT NULL, -- 'based_on_listening', 'trending', 'similar_users'
@@ -127,7 +127,7 @@ CREATE TABLE music_recommendations (
 
 -- Create search_history table
 CREATE TABLE search_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     query TEXT NOT NULL,
     search_type TEXT DEFAULT 'all', -- 'tracks', 'artists', 'playlists', 'all'
@@ -137,7 +137,7 @@ CREATE TABLE search_history (
 
 -- Create smart_playlists table
 CREATE TABLE smart_playlists (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
@@ -184,12 +184,12 @@ CREATE INDEX idx_search_history_query ON search_history USING gin(to_tsvector('e
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS $
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$ LANGUAGE plpgsql;
 
 -- Create triggers for updated_at
 CREATE TRIGGER update_music_tracks_updated_at BEFORE UPDATE ON music_tracks
@@ -304,7 +304,7 @@ INSERT INTO music_tracks (youtube_id, title, artist, album, duration, thumbnail_
 
 -- Create a function to automatically update playlist track count and duration
 CREATE OR REPLACE FUNCTION update_playlist_stats()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS $
 BEGIN
     UPDATE playlists 
     SET 
@@ -324,7 +324,7 @@ BEGIN
     
     RETURN COALESCE(NEW, OLD);
 END;
-$$ language 'plpgsql';
+$ LANGUAGE plpgsql;
 
 -- Create triggers for playlist stats
 CREATE TRIGGER update_playlist_stats_insert AFTER INSERT ON playlist_tracks
@@ -335,7 +335,7 @@ CREATE TRIGGER update_playlist_stats_delete AFTER DELETE ON playlist_tracks
 
 -- Create a function to track listening analytics
 CREATE OR REPLACE FUNCTION track_listening_analytics()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS $
 BEGIN
     INSERT INTO music_analytics (track_id, total_plays, last_played_at)
     VALUES (NEW.track_id, 1, NOW())
@@ -347,7 +347,7 @@ BEGIN
     
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$ LANGUAGE plpgsql;
 
 -- Create trigger for analytics
 CREATE TRIGGER track_listening_analytics_trigger AFTER INSERT ON listening_history

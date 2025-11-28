@@ -19,6 +19,7 @@ import ContentLibrary from "./pages/ContentLibrary";
 import SchedulerPage from "./pages/SchedulerPage";
 import AIStudioPage from "./pages/AIStudioPage";
 import PlatformConnections from "./pages/PlatformConnections";
+import EnhancedDashboard from "./pages/EnhancedDashboard";
 import OAuthCallback from "./components/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -65,6 +66,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Analytics />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/enhanced-dashboard"
+                element={
+                  <ProtectedRoute>
+                    <EnhancedDashboard />
                   </ProtectedRoute>
                 }
               />

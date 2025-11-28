@@ -61,18 +61,26 @@ export const usePlatformConnections = () => {
             setLoading(true);
             setError(null);
 
+            console.log('Fetching platform connections for user:', user?.id);
+
             if (!user) {
-                throw new Error('User not authenticated');
+                console.warn('User not authenticated in fetchConnections');
+                setError('User not authenticated');
+                return;
             }
 
+            console.log('Querying platform_connections table...');
             const { data, error } = await supabase
                 .from('platform_connections')
                 .select('*')
                 .eq('user_id', user.id);
 
             if (error) {
+                console.error('Supabase error:', error);
                 throw error;
             }
+
+            console.log('Platform connections data:', data);
 
             // Update connections with actual data
             setConnections(prevConnections =>

@@ -11,9 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import { useToast } from '@/hooks/use-toast';
 import { usePlatformConnections } from '@/hooks/usePlatformConnections';
+import { useAuth } from '@/contexts/AuthContext';
+import DebugPanel from '@/components/DebugPanel';
 
 const PlatformConnections = () => {
     const { toast } = useToast();
+    const { user, loading: authLoading } = useAuth();
     const {
         connections,
         loading,
@@ -22,6 +25,15 @@ const PlatformConnections = () => {
         disconnectPlatform,
         refreshConnection,
     } = usePlatformConnections();
+
+    // Debug logging
+    console.log('PlatformConnections render:', {
+        user: user ? { id: user.id, email: user.email } : null,
+        authLoading,
+        connections,
+        loading,
+        error
+    });
 
     const handleConnect = async (platform: string) => {
         toast({
@@ -126,13 +138,38 @@ const PlatformConnections = () => {
         }
     };
 
-    if (loading) {
+    // Show loading states
+    if (authLoading || loading) {
         return (
             <div className="min-h-screen bg-background">
                 <Header />
                 <main className="container mx-auto px-6 py-8 space-y-8 max-w-4xl">
                     <div className="text-center">
-                        <p className="text-muted-foreground">Loading platform connections...</p>
+                        <p className="text-muted-foreground">
+                            {authLoading ? 'Authenticating...' : 'Loading platform connections...'}
+                        </p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    // Check if user is authenticated
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-background">
+                <Header />
+                <main className="container mx-auto px-6 py-8 space-y-8 max-w-4xl">
+                    <div className="text-center">
+                        <h2 className="text-xl font-semibold mb-4">Authentication Required</h2>
+                        <p className="text-muted-foreground mb-6">
+                            Please sign in to manage your platform connections.
+                        </p>
+                        <Link to="/">
+                            <Button className="btn-3d gradient-instagram text-white">
+                                Sign In
+                            </Button>
+                        </Link>
                     </div>
                 </main>
             </div>
@@ -146,6 +183,13 @@ const PlatformConnections = () => {
                 <main className="container mx-auto px-6 py-8 space-y-8 max-w-4xl">
                     <div className="text-center">
                         <p className="text-red-500">Error loading platform connections: {error}</p>
+                        <Button
+                            onClick={() => window.location.reload()}
+                            className="mt-4"
+                            variant="outline"
+                        >
+                            Retry
+                        </Button>
                     </div>
                 </main>
             </div>
@@ -265,6 +309,9 @@ const PlatformConnections = () => {
                     </div>
                 </Card>
             </main>
+
+            {/* Debug Panel */}
+            <DebugPanel />
         </div>
     );
 };

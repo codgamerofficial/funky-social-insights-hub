@@ -103,14 +103,14 @@ CREATE INDEX IF NOT EXISTS idx_scheduled_posts_platform ON scheduled_posts(platf
 CREATE INDEX IF NOT EXISTS idx_scheduled_posts_status ON scheduled_posts(status);
 CREATE INDEX IF NOT EXISTS idx_scheduled_posts_scheduled_for ON scheduled_posts(scheduled_for);
 
--- Create updated_at triggers
+-- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = now();
     RETURN NEW;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- Apply triggers
 CREATE TRIGGER update_platform_connections_updated_at 
