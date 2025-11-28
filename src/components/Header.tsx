@@ -1,4 +1,4 @@
-import { Upload, Video, Link as LinkIcon, Menu, Sparkles, LogIn, Calendar as CalendarIcon, Orbit } from "lucide-react";
+import { Upload, Video, Link as LinkIcon, Menu, Sparkles, LogIn, Calendar as CalendarIcon, Orbit, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,6 +46,12 @@ const Header = () => {
             <Button variant="ghost" className="btn-3d text-foreground hover:text-primary">
               <Upload className="w-4 h-4 mr-2" />
               Upload
+            </Button>
+          </Link>
+          <Link to="/music">
+            <Button variant="ghost" className="btn-3d text-foreground hover:text-primary">
+              <Music className="w-4 h-4 mr-2" />
+              Music
             </Button>
           </Link>
           <Link to="/library">

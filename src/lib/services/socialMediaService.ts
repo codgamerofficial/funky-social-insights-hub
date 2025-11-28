@@ -8,6 +8,8 @@ import { createYouTubeAPI, YouTubeConfig } from '@/lib/api/youtube';
 import { createFacebookAPI, FacebookConfig } from '@/lib/api/facebook';
 import { createInstagramAPI, InstagramConfig } from '@/lib/api/instagram';
 
+const GRAPH_API_BASE = 'https://graph.facebook.com/v18.0';
+
 export interface PlatformConnection {
     id: string;
     platform: string;
