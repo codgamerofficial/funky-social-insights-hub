@@ -96,12 +96,28 @@ export const useVideoUpload = () => {
             const timestamp = Date.now();
             const filename = `${userId}/${timestamp}-${file.name}`;
 
-            // Upload to Supabase Storage
+            // Update progress periodically during upload
+            const updateProgress = (loaded: number) => {
+                const percentage = Math.round((loaded / file.size) * 100);
+                setProgress({ loaded, total: file.size, percentage });
+            };
+
+            // Start with metadata extraction progress
+            updateProgress(file.size * 0.1);
+
+            // Upload to Supabase Storage with progress tracking
             const { data, error } = await supabase.storage
                 .from('videos')
                 .upload(filename, file, {
                     cacheControl: '3600',
                     upsert: false,
+                    onUploadProgress: (progress) => {
+                        if (progress.loaded && progress.total) {
+                            const uploadProgress = (progress.loaded / progress.total) * (file.size * 0.9);
+                            const totalProgress = file.size * 0.1 + uploadProgress;
+                            updateProgress(totalProgress);
+                        }
+                    }
                 });
 
             if (error) throw error;
@@ -111,7 +127,8 @@ export const useVideoUpload = () => {
                 .from('videos')
                 .getPublicUrl(data.path);
 
-            setProgress({ loaded: file.size, total: file.size, percentage: 100 });
+            // Complete progress
+            updateProgress(file.size);
 
             toast({
                 title: 'Upload Complete',
@@ -124,9 +141,10 @@ export const useVideoUpload = () => {
                 metadata,
             };
         } catch (error: any) {
+            console.error('Upload error:', error);
             toast({
                 title: 'Upload Failed',
-                description: error.message,
+                description: error.message || 'Failed to upload video. Please try again.',
                 variant: 'destructive',
             });
             throw error;

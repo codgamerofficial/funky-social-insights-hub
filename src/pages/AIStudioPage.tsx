@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { ArrowLeft, Sparkles, Copy, RefreshCw, Image as ImageIcon, Type, FileText, Hash } from 'lucide-react';
+import { ArrowLeft, Sparkles, Copy, RefreshCw, Image as ImageIcon, Type, FileText, Hash, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -24,12 +24,30 @@ const AIStudioPage = () => {
     const [platform, setPlatform] = useState('youtube');
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedContent, setGeneratedContent] = useState<any>(null);
+    const [generatedImages, setGeneratedImages] = useState<{ prompt: string; url: string }[]>([]);
+    const [isGeneratingImages, setIsGeneratingImages] = useState(false);
 
-    // Initialize AI generator (mock config for now)
-    const aiGenerator = createAIContentGenerator({
-        provider: 'openai',
-        apiKey: 'mock-key', // In production, this would come from env/db
-    });
+    // Initialize AI generator with real API keys
+    const getAIGenerator = () => {
+        const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
+        if (geminiApiKey) {
+            return createAIContentGenerator({
+                provider: 'gemini',
+                apiKey: geminiApiKey,
+            });
+        } else if (openaiApiKey) {
+            return createAIContentGenerator({
+                provider: 'openai',
+                apiKey: openaiApiKey,
+            });
+        } else {
+            // Fallback to mock for development
+            console.warn('No AI API keys found, using mock data');
+            return null;
+        }
+    };
 
     const handleGenerate = async (type: 'titles' | 'description' | 'tags' | 'thumbnails') => {
         if (!videoTitle) {
@@ -44,46 +62,76 @@ const AIStudioPage = () => {
         setIsGenerating(true);
 
         try {
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            const aiGenerator = getAIGenerator();
+            const contentOptions = {
+                videoTitle,
+                videoDescription,
+                targetPlatform: platform as 'youtube' | 'facebook' | 'instagram',
+            };
 
             let result;
-            switch (type) {
-                case 'titles':
-                    result = [
-                        `10 Secrets About ${videoTitle} You Didn't Know`,
-                        `The Ultimate Guide to ${videoTitle} in 2024`,
-                        `Why Everyone is Wrong About ${videoTitle}`,
-                        `How to Master ${videoTitle} Fast`,
-                        `${videoTitle}: A Complete Breakdown`,
-                    ];
-                    setGeneratedContent({ ...generatedContent, titles: result });
-                    break;
-                case 'description':
-                    result = `🔥 In this video, we dive deep into ${videoTitle}.
+
+            if (aiGenerator) {
+                // Use real AI generation
+                switch (type) {
+                    case 'titles':
+                        result = await aiGenerator.generateTitles(contentOptions);
+                        setGeneratedContent({ ...generatedContent, titles: result });
+                        break;
+                    case 'description':
+                        const descriptions = await aiGenerator.generateDescriptions(contentOptions);
+                        result = descriptions[0]; // Use first description
+                        setGeneratedContent({ ...generatedContent, description: result });
+                        break;
+                    case 'tags':
+                        result = await aiGenerator.generateTags(contentOptions);
+                        setGeneratedContent({ ...generatedContent, tags: result });
+                        break;
+                    case 'thumbnails':
+                        result = await aiGenerator.generateThumbnailPrompts(contentOptions);
+                        setGeneratedContent({ ...generatedContent, thumbnails: result });
+                        break;
+                }
+            } else {
+                // Fallback to enhanced mock data
+                switch (type) {
+                    case 'titles':
+                        result = [
+                            `10 Secrets About ${videoTitle} You Didn't Know`,
+                            `The Ultimate Guide to ${videoTitle} in 2024`,
+                            `Why Everyone is Wrong About ${videoTitle}`,
+                            `How to Master ${videoTitle} Fast`,
+                            `${videoTitle}: A Complete Breakdown`,
+                        ];
+                        setGeneratedContent({ ...generatedContent, titles: result });
+                        break;
+                    case 'description':
+                        result = `🔥 In this video, we dive deep into ${videoTitle}.
+${videoDescription ? `Context: ${videoDescription}` : ''}
 
 You'll learn:
 ✅ Key Concept 1
-✅ Key Concept 2
+✅ Key Concept 2  
 ✅ Key Concept 3
 
 Don't forget to subscribe for more content about ${videoTitle}!
 
 #${videoTitle.replace(/\s+/g, '')} #learning #guide`;
-                    setGeneratedContent({ ...generatedContent, description: result });
-                    break;
-                case 'tags':
-                    result = ['viral', 'trending', 'guide', 'tutorial', 'howto', '2024', 'tips', 'tricks', 'education', 'learning'];
-                    setGeneratedContent({ ...generatedContent, tags: result });
-                    break;
-                case 'thumbnails':
-                    result = [
-                        'Close up of person looking shocked with bold text overlay',
-                        'Split screen comparison with red arrow pointing to detail',
-                        'Minimalist background with high contrast subject',
-                    ];
-                    setGeneratedContent({ ...generatedContent, thumbnails: result });
-                    break;
+                        setGeneratedContent({ ...generatedContent, description: result });
+                        break;
+                    case 'tags':
+                        result = ['viral', 'trending', 'guide', 'tutorial', 'howto', '2024', 'tips', 'tricks', 'education', 'learning'];
+                        setGeneratedContent({ ...generatedContent, tags: result });
+                        break;
+                    case 'thumbnails':
+                        result = [
+                            `Professional ${videoTitle} thumbnail with bold text overlay, high contrast, eye-catching design`,
+                            `Split screen comparison showing before/after for ${videoTitle} with red arrow pointing to key detail`,
+                            `Minimalist background with ${videoTitle} subject prominently featured, clean and modern design`,
+                        ];
+                        setGeneratedContent({ ...generatedContent, thumbnails: result });
+                        break;
+                }
             }
 
             toast({
@@ -91,9 +139,10 @@ Don't forget to subscribe for more content about ${videoTitle}!
                 description: `Successfully generated ${type}!`,
             });
         } catch (error) {
+            console.error('AI generation error:', error);
             toast({
                 title: 'Generation Failed',
-                description: 'Failed to generate content. Please try again.',
+                description: 'Failed to generate content. Please check your API keys and try again.',
                 variant: 'destructive',
             });
         } finally {
@@ -107,6 +156,61 @@ Don't forget to subscribe for more content about ${videoTitle}!
             title: 'Copied!',
             description: 'Content copied to clipboard.',
         });
+    };
+
+    const handleGenerateThumbnailImage = async (prompt: string) => {
+        const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
+        if (!openaiApiKey) {
+            toast({
+                title: 'API Key Required',
+                description: 'OpenAI API key is required for image generation.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        setIsGeneratingImages(true);
+
+        try {
+            const response = await fetch('https://api.openai.com/v1/images/generations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${openaiApiKey}`,
+                },
+                body: JSON.stringify({
+                    model: 'dall-e-3',
+                    prompt: `Create a professional YouTube thumbnail: ${prompt}. Style: High contrast, eye-catching, bold text overlay, professional design.`,
+                    n: 1,
+                    size: '1792x1024', // YouTube thumbnail aspect ratio
+                    quality: 'hd',
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate image');
+            }
+
+            const data = await response.json();
+            const imageUrl = data.data[0].url;
+
+            setGeneratedImages(prev => [...prev, { prompt, url: imageUrl }]);
+
+            toast({
+                title: 'Image Generated!',
+                description: 'Thumbnail image created successfully.',
+            });
+        } catch (error) {
+            console.error('Image generation error:', error);
+            toast({
+                title: 'Generation Failed',
+                description: 'Failed to generate image. Please check your API key.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsGeneratingImages(false);
+        }
     };
 
     return (
@@ -339,10 +443,11 @@ Don't forget to subscribe for more content about ${videoTitle}!
                                             </Button>
                                         </div>
 
-                                        <div className="space-y-4">
+                                        <div className="space-y-6">
+                                            {/* Generated Thumbnail Prompts */}
                                             {generatedContent?.thumbnails?.map((prompt: string, index: number) => (
                                                 <div key={index} className="p-4 bg-background/50 rounded-lg border border-white/10">
-                                                    <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex items-start justify-between gap-4 mb-3">
                                                         <p className="text-sm">{prompt}</p>
                                                         <Button
                                                             variant="ghost"
@@ -352,12 +457,51 @@ Don't forget to subscribe for more content about ${videoTitle}!
                                                             <Copy className="w-4 h-4" />
                                                         </Button>
                                                     </div>
-                                                    <Button variant="outline" size="sm" className="mt-2 w-full btn-3d">
-                                                        <ImageIcon className="w-4 h-4 mr-2" />
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="w-full btn-3d"
+                                                        onClick={() => handleGenerateThumbnailImage(prompt)}
+                                                        disabled={isGeneratingImages}
+                                                    >
+                                                        {isGeneratingImages ? (
+                                                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                                        ) : (
+                                                            <ImageIcon className="w-4 h-4 mr-2" />
+                                                        )}
                                                         Generate Image (DALL-E)
                                                     </Button>
                                                 </div>
                                             ))}
+
+                                            {/* Generated Images */}
+                                            {generatedImages.length > 0 && (
+                                                <div className="space-y-4">
+                                                    <h4 className="text-lg font-semibold">Generated Images</h4>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {generatedImages.map((image, index) => (
+                                                            <div key={index} className="space-y-2">
+                                                                <img
+                                                                    src={image.url}
+                                                                    alt={`Generated thumbnail ${index + 1}`}
+                                                                    className="w-full aspect-video object-cover rounded-lg border border-white/10"
+                                                                />
+                                                                <p className="text-xs text-muted-foreground">{image.prompt}</p>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="w-full"
+                                                                    onClick={() => window.open(image.url, '_blank')}
+                                                                >
+                                                                    <Download className="w-4 h-4 mr-2" />
+                                                                    Download
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {!generatedContent?.thumbnails && (
                                                 <div className="text-center py-12 text-muted-foreground">
                                                     Get creative thumbnail concepts for your video
