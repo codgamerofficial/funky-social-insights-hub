@@ -1,12 +1,10 @@
-import { 
-  Instagram, 
-  Facebook, 
-  TrendingUp, 
-  Users, 
-  Eye, 
+import {
+  Instagram,
+  Facebook,
+  TrendingUp,
+  Users,
+  Eye,
   Heart,
-  MessageCircle,
-  Share2,
   BarChart3,
   Target
 } from "lucide-react";
@@ -15,9 +13,10 @@ import StatsCard from "@/components/StatsCard";
 import SocialMediaConnector from "@/components/SocialMediaConnector";
 import AIInsights from "@/components/AIInsights";
 import ContactInfo from "@/components/ContactInfo";
+import FeatureShowcase from "@/components/FeatureShowcase";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const { toast } = useToast();
@@ -31,59 +30,65 @@ const Index = () => {
 
   const handleFacebookAnalyze = () => {
     toast({
-      title: "Starting Facebook Analysis", 
+      title: "Starting Facebook Analysis",
       description: "Connecting to Facebook API to fetch your page data...",
-    });
-  };
-
-  const handleGetStarted = () => {
-    toast({
-      title: "Welcome to IG&FB Analyzer!",
-      description: "Let's get you started with analyzing your social media performance.",
     });
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-6 py-8 space-y-8 max-w-7xl">
         {/* Hero Section */}
-        <section className="text-center space-y-6 py-12">
-          <div className="animate-bounce-in">
-            <h1 className="text-6xl font-bold text-gradient-instagram mb-4">
-              IG&FB Analyzer
+        <section className="text-center space-y-6 py-12 relative">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 rounded-full blur-[120px] pointer-events-none" />
+
+          <div className="animate-bounce-in relative z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="text-sm font-medium text-white/80">Orbit v2.0 is now live</span>
+            </div>
+
+            <h1 className="text-6xl md:text-8xl font-bold mb-6 tracking-tight">
+              <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+                Orbit
+              </span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Transform your social media strategy with AI-powered analytics, 
-              insights, and performance tracking for Instagram and Facebook.
+            <p className="text-2xl md:text-3xl font-light text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8">
+              Your complete <span className="text-white font-medium">Social Command Center</span>. <br />
+              Upload, Analyze, and Dominate.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button 
-              variant="instagram" 
-              size="lg" 
-              className="animate-pulse-glow"
-              onClick={handleInstagramAnalyze}
-            >
-              <Instagram className="w-5 h-5 mr-2" />
-              Start Analyzing Instagram
-            </Button>
-            <Button 
-              variant="facebook" 
-              size="lg"
-              onClick={handleFacebookAnalyze}
-            >
-              <Facebook className="w-5 h-5 mr-2" />
-              Analyze Facebook Page
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center relative z-10">
+            <Link to="/auth">
+              <Button
+                className="btn-3d gradient-instagram text-white h-12 px-8 text-lg shadow-lg shadow-pink-500/20"
+              >
+                Start for Free
+              </Button>
+            </Link>
+            <Link to="/library">
+              <Button
+                variant="outline"
+                className="btn-3d h-12 px-8 text-lg"
+              >
+                View Demo
+              </Button>
+            </Link>
           </div>
         </section>
+
+        {/* Feature Showcase Ad Design */}
+        <FeatureShowcase />
 
         {/* Stats Overview */}
         <section className="space-y-6">
           <h2 className="text-3xl font-bold text-center text-gradient-funky">
-            Analytics Overview
+            Live Performance Tracking
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatsCard
@@ -135,63 +140,25 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Features Grid */}
-        <section className="space-y-6">
-          <h2 className="text-3xl font-bold text-center text-gradient-instagram">
-            Powerful Features
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: BarChart3,
-                title: "Advanced Analytics",
-                description: "Deep dive into your performance metrics with detailed charts and insights."
-              },
-              {
-                icon: Target,
-                title: "Audience Targeting",
-                description: "Understand your audience demographics and optimize your content strategy."
-              },
-              {
-                icon: TrendingUp,
-                title: "Growth Tracking",
-                description: "Monitor your follower growth and engagement trends over time."
-              }
-            ].map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <Card key={index} className="glass-card p-6 btn-3d group text-center">
-                  <div className="space-y-4">
-                    <div className="w-16 h-16 gradient-funky rounded-2xl flex items-center justify-center mx-auto animate-float">
-                      <Icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-foreground">{feature.title}</h3>
-                    <p className="text-muted-foreground">{feature.description}</p>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-
         {/* CTA Section */}
         <section className="text-center space-y-6 py-12">
           <div className="glass-card p-8 max-w-2xl mx-auto">
             <h2 className="text-4xl font-bold text-gradient-funky mb-4">
-              Ready to Analyze?
+              Ready to Automate?
             </h2>
             <p className="text-muted-foreground mb-6">
-              Connect your social media accounts and start getting AI-powered insights 
+              Connect your social media accounts and start getting AI-powered insights
               to grow your online presence.
             </p>
-            <Button 
-              variant="funky" 
-              size="lg" 
-              className="animate-pulse-glow"
-              onClick={handleGetStarted}
-            >
-              Get Started Now
-            </Button>
+            <Link to="/auth">
+              <Button
+                variant="funky"
+                size="lg"
+                className="animate-pulse-glow"
+              >
+                Get Started Now
+              </Button>
+            </Link>
           </div>
         </section>
       </main>
