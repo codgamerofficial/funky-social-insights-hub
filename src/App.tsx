@@ -17,6 +17,7 @@ import ContentLibrary from "./pages/ContentLibrary";
 import SchedulerPage from "./pages/SchedulerPage";
 import AIStudioPage from "./pages/AIStudioPage";
 import PlatformConnections from "./pages/PlatformConnections";
+import OAuthCallback from "./components/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/oauth/callback" element={<OAuthCallback />} />
             <Route
               path="/profile"
               element={

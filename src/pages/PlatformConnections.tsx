@@ -3,7 +3,6 @@
  * Manage OAuth connections to YouTube, Facebook, Instagram
  */
 
-import { useState } from 'react';
 import { ArrowLeft, Link as LinkIcon, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,91 +10,147 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header';
 import { useToast } from '@/hooks/use-toast';
+import { usePlatformConnections } from '@/hooks/usePlatformConnections';
 
 const PlatformConnections = () => {
     const { toast } = useToast();
+    const {
+        connections,
+        loading,
+        error,
+        connectPlatform,
+        disconnectPlatform,
+        refreshConnection,
+    } = usePlatformConnections();
 
-    const [connections, setConnections] = useState([
-        {
-            platform: 'youtube',
-            name: 'YouTube',
-            icon: '📺',
-            connected: false,
-            accountName: '',
-            lastSync: null,
-        },
-        {
-            platform: 'facebook',
-            name: 'Facebook',
-            icon: '📘',
-            connected: false,
-            accountName: '',
-            lastSync: null,
-        },
-        {
-            platform: 'instagram',
-            name: 'Instagram',
-            icon: '📷',
-            connected: false,
-            accountName: '',
-            lastSync: null,
-        },
-    ]);
-
-    const handleConnect = (platform: string) => {
+    const handleConnect = async (platform: string) => {
         toast({
             title: 'Connecting...',
             description: `Opening ${platform} OAuth flow`,
         });
 
-        // TODO: Implement actual OAuth flow
-        // This would redirect to the platform's OAuth page
-        setTimeout(() => {
-            setConnections(connections.map(conn =>
-                conn.platform === platform
-                    ? { ...conn, connected: true, accountName: `My ${conn.name} Account`, lastSync: new Date().toISOString() }
-                    : conn
-            ));
+        try {
+            let authUrl = '';
 
+            switch (platform) {
+                case 'youtube':
+                    const youtubeConfig = {
+                        clientId: import.meta.env.VITE_YOUTUBE_CLIENT_ID,
+                        clientSecret: import.meta.env.VITE_YOUTUBE_CLIENT_SECRET,
+                        apiKey: import.meta.env.VITE_YOUTUBE_API_KEY,
+                        redirectUri: `${window.location.origin}/oauth/callback`
+                    };
+                    const { createYouTubeAPI } = await import('@/lib/api/youtube');
+                    const youtubeAPI = createYouTubeAPI(youtubeConfig);
+                    authUrl = youtubeAPI.initiateOAuth();
+                    break;
+
+                case 'facebook':
+                    const facebookConfig = {
+                        appId: import.meta.env.VITE_FACEBOOK_APP_ID,
+                        appSecret: import.meta.env.VITE_FACEBOOK_APP_SECRET,
+                        redirectUri: `${window.location.origin}/oauth/callback`
+                    };
+                    const { createFacebookAPI } = await import('@/lib/api/facebook');
+                    const facebookAPI = createFacebookAPI(facebookConfig);
+                    authUrl = facebookAPI.initiateOAuth();
+                    break;
+
+                case 'instagram':
+                    const instagramConfig = {
+                        appId: import.meta.env.VITE_FACEBOOK_APP_ID,
+                        appSecret: import.meta.env.VITE_FACEBOOK_APP_SECRET,
+                        redirectUri: `${window.location.origin}/oauth/callback`
+                    };
+                    const { createInstagramAPI } = await import('@/lib/api/instagram');
+                    const instagramAPI = createInstagramAPI(instagramConfig);
+                    // Instagram uses Facebook's OAuth flow
+                    authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${instagramConfig.appId}&redirect_uri=${encodeURIComponent(instagramConfig.redirectUri)}&scope=instagram_basic,instagram_content_publish&response_type=code`;
+                    break;
+
+                default:
+                    throw new Error(`Unsupported platform: ${platform}`);
+            }
+
+            if (authUrl) {
+                // Store the platform being connected for callback handling
+                localStorage.setItem('connectingPlatform', platform);
+                // Redirect to OAuth provider
+                window.location.href = authUrl;
+            }
+        } catch (error) {
+            console.error(`Failed to connect to ${platform}:`, error);
             toast({
-                title: 'Connected!',
-                description: `Successfully connected to ${platform}`,
+                title: 'Connection Failed',
+                description: `Failed to connect to ${platform}. Please try again.`,
+                variant: 'destructive',
             });
-        }, 1500);
+        }
     };
 
-    const handleDisconnect = (platform: string) => {
-        setConnections(connections.map(conn =>
-            conn.platform === platform
-                ? { ...conn, connected: false, accountName: '', lastSync: null }
-                : conn
-        ));
-
-        toast({
-            title: 'Disconnected',
-            description: `Disconnected from ${platform}`,
-        });
+    const handleDisconnect = async (platform: string) => {
+        try {
+            await disconnectPlatform(platform);
+            toast({
+                title: 'Disconnected',
+                description: `Successfully disconnected from ${platform}`,
+            });
+        } catch (error: any) {
+            toast({
+                title: 'Disconnection Failed',
+                description: error.message || `Failed to disconnect from ${platform}`,
+                variant: 'destructive',
+            });
+        }
     };
 
-    const handleRefresh = (platform: string) => {
-        toast({
-            title: 'Refreshing...',
-            description: 'Updating connection status',
-        });
+    const handleRefresh = async (platform: string) => {
+        try {
+            toast({
+                title: 'Refreshing...',
+                description: `Updating ${platform} connection`,
+            });
 
-        setTimeout(() => {
-            setConnections(connections.map(conn =>
-                conn.platform === platform
-                    ? { ...conn, lastSync: new Date().toISOString() }
-                    : conn
-            ));
+            await refreshConnection(platform);
 
             toast({
                 title: 'Refreshed',
-                description: 'Connection updated successfully',
+                description: `${platform} connection updated successfully`,
             });
-        }, 1000);
+        } catch (error: any) {
+            toast({
+                title: 'Refresh Failed',
+                description: error.message || `Failed to refresh ${platform} connection`,
+                variant: 'destructive',
+            });
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-background">
+                <Header />
+                <main className="container mx-auto px-6 py-8 space-y-8 max-w-4xl">
+                    <div className="text-center">
+                        <p className="text-muted-foreground">Loading platform connections...</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-background">
+                <Header />
+                <main className="container mx-auto px-6 py-8 space-y-8 max-w-4xl">
+                    <div className="text-center">
+                        <p className="text-red-500">Error loading platform connections: {error}</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background">
@@ -192,15 +247,20 @@ const PlatformConnections = () => {
                     <div className="space-y-4 text-sm text-muted-foreground">
                         <div>
                             <h4 className="font-semibold text-foreground mb-2">📺 YouTube</h4>
-                            <p>Requires Google Cloud Console project with YouTube Data API enabled.</p>
+                            <p>Click "Connect" to start OAuth flow. Ensure your Google Cloud Console has YouTube Data API v3 enabled and redirect URIs configured.</p>
                         </div>
                         <div>
                             <h4 className="font-semibold text-foreground mb-2">📘 Facebook</h4>
-                            <p>Requires Meta Developer app with Facebook Login and Pages permissions.</p>
+                            <p>Click "Connect" to start OAuth flow. Your Facebook app needs Facebook Login and Pages permissions approved.</p>
                         </div>
                         <div>
                             <h4 className="font-semibold text-foreground mb-2">📷 Instagram</h4>
-                            <p>Requires Facebook Business account with Instagram Business account linked.</p>
+                            <p>Click "Connect" to start OAuth flow. Requires Facebook Business account with linked Instagram Business account.</p>
+                        </div>
+                        <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                            <p className="text-blue-400 text-xs">
+                                💡 <strong>Tip:</strong> After connecting, click "Refresh" to fetch the latest analytics data from your connected accounts.
+                            </p>
                         </div>
                     </div>
                 </Card>
